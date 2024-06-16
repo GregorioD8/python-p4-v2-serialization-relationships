@@ -17,18 +17,24 @@ metadata = MetaData(naming_convention=convention)
 db = SQLAlchemy(metadata=metadata)
 
 
-class Zookeeper(db.Model):
+class Zookeeper(db.Model, SerializerMixin):
     __tablename__ = 'zookeepers'
+    # To avoid any errors involving recursion depth, we can set the serialize_rules class attribute in each of our models. 
+    # don't forget that every tuple needs at least one comma!
+    serialize_rules = ('-animals.zookeeper',)
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, unique=True)
     birthday = db.Column(db.Date)
 
     animals = db.relationship('Animal', back_populates='zookeeper')
+    
 
 
-class Enclosure(db.Model):
+class Enclosure(db.Model, SerializerMixin):
     __tablename__ = 'enclosures'
+    # To avoid any errors involving recursion depth, we can set the serialize_rules class attribute
+    serialize_rules = ('-animals.enclosure',)
 
     id = db.Column(db.Integer, primary_key=True)
     environment = db.Column(db.String)
@@ -37,9 +43,12 @@ class Enclosure(db.Model):
     animals = db.relationship('Animal', back_populates='enclosure')
 
 
-class Animal(db.Model):
+class Animal(db.Model, SerializerMixin):
     __tablename__ = 'animals'
-
+    
+    # To avoid any errors involving recursion depth, we can set the serialize_rules class attribute
+    serialize_rules = ('-zookeeper.animals', '-enclosure.animals',)
+    
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, unique=True)
     species = db.Column(db.String)
